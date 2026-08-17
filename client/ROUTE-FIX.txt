@@ -1,0 +1,15 @@
+MEESHO ROUTE FIX
+
+In your existing client/src/App.tsx (or the file where your React Router Routes are defined), add:
+
+import MeeshoCropper from './pages/MeeshoCropper'
+
+Inside <Routes> add:
+
+<Route path="/meesho" element={<MeeshoCropper />} />
+
+Your Navbar Meesho item should navigate to:
+
+/meesho
+
+Do not create a second BrowserRouter.

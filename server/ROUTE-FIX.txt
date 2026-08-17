@@ -1,0 +1,12 @@
+MEESHO SERVER ROUTE FIX
+
+In your Fastify server bootstrap file, add:
+
+import { meeshoProcessRoutes } from './routes/meesho-process.js'
+
+Then, after creating the Fastify app and before listen():
+
+await meeshoProcessRoutes(app)
+
+The frontend calls:
+POST /api/meesho/process
