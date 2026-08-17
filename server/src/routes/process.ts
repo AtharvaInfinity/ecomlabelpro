@@ -6,8 +6,12 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { extractAmazonMetadataForPages } from '../services/amazon-metadata.service.js'
 import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
-const uploadDir = path.resolve(process.cwd(), 'data/uploads')
-const outputDir = path.resolve(process.cwd(), 'data/outputs')
+const uploadDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/uploads'
+  : path.resolve(process.cwd(), 'data/uploads')
+const outputDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/outputs'
+  : path.resolve(process.cwd(), 'data/outputs')
 
 const RIGHT_PRINT_SAFE_SPACE = 36
 const NORMAL_BOTTOM_SPACE = 8

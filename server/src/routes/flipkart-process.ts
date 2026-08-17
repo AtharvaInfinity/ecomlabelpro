@@ -6,8 +6,12 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { extractFlipkartMetadataForPages } from '../services/flipkart-metadata.service.js'
 import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
-const uploadDir = path.resolve(process.cwd(), 'data/uploads')
-const outputDir = path.resolve(process.cwd(), 'data/outputs')
+const uploadDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/uploads'
+  : path.resolve(process.cwd(), 'data/uploads')
+const outputDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/outputs'
+  : path.resolve(process.cwd(), 'data/outputs')
 
 // Flipkart source pages are A4 (595 x 842 pt). The shipping label is a
 // centered block near the top of the page. We crop ONLY that block so the

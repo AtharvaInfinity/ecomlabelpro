@@ -6,8 +6,12 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { extractMeeshoMetadata } from '../services/meesho-metadata.service.js'
 import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
-const uploadDir = path.resolve(process.cwd(), 'data/uploads')
-const outputDir = path.resolve(process.cwd(), 'data/outputs')
+const uploadDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/uploads'
+  : path.resolve(process.cwd(), 'data/uploads')
+const outputDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/outputs'
+  : path.resolve(process.cwd(), 'data/outputs')
 
 /*
  * Meesho source PDF supplied by the user:

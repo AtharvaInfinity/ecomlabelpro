@@ -5,8 +5,12 @@ import crypto from 'node:crypto'
 import { PDFDocument } from 'pdf-lib'
 import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
-const uploadDir = path.resolve(process.cwd(), 'data/uploads')
-const outputDir = path.resolve(process.cwd(), 'data/outputs')
+const uploadDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/uploads'
+  : path.resolve(process.cwd(), 'data/uploads')
+const outputDir = process.env.VERCEL
+  ? '/tmp/ecom-label-pro/outputs'
+  : path.resolve(process.cwd(), 'data/outputs')
 
 type MergeBody = {
   files?: Array<{

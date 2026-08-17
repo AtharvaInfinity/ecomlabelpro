@@ -36,10 +36,13 @@ export async function materializeUploads(files: UploadedFile[]) {
       // Download from Blob below.
     }
 
-    const result = await get(file.fileId, {
-      access: 'private',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    })
+    const result = await get(
+      file.fileId.startsWith('uploads/') ? file.fileId : `uploads/${path.basename(file.fileId)}`,
+      {
+        access: 'private',
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      },
+    )
 
     if (!result) {
       throw new Error(`Uploaded PDF not found in storage: ${file.fileId}`)
