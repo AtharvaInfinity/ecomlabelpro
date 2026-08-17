@@ -10,11 +10,11 @@ export async function getPdfjs() {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
       const canvas = await import('@napi-rs/canvas')
-      const globals = globalThis as typeof globalThis & {
-        DOMMatrix?: typeof canvas.DOMMatrix
-        ImageData?: typeof canvas.ImageData
-        Path2D?: typeof canvas.Path2D
-      }
+      // PDF.js' DOM types and @napi-rs/canvas' DOM types are structurally
+      // different across current TypeScript/lib.dom versions. The runtime
+      // only needs these constructors on globalThis, so keep this boundary
+      // intentionally untyped.
+      const globals = globalThis as any
 
       if (!globals.DOMMatrix) globals.DOMMatrix = canvas.DOMMatrix
       if (!globals.ImageData) globals.ImageData = canvas.ImageData
