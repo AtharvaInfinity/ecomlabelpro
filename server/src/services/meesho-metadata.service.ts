@@ -1,4 +1,4 @@
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { getPdfjs } from './pdfjs-node.service.js'
 
 export type MeeshoPageMetadata = {
   sku?: string
@@ -22,7 +22,8 @@ function findPickup(text: string) {
 export async function extractMeeshoMetadata(
   bytes: Uint8Array,
 ): Promise<MeeshoPageMetadata[]> {
-  const pdf = await getDocument({ data: bytes }).promise
+  const pdfjsLib = await getPdfjs()
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
   const result: MeeshoPageMetadata[] = []
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {

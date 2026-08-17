@@ -1,4 +1,4 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { getPdfjs } from './pdfjs-node.service.js'
 
 export type AmazonMetadata = {
   sku?: string
@@ -136,6 +136,7 @@ export async function extractAmazonMetadataForPages(
   pageNumbers: number[],
 ): Promise<Map<number, AmazonMetadata>> {
   const data = toUint8Array(pdfBytes)
+  const pdfjsLib = await getPdfjs()
 
   const loadingTask = pdfjsLib.getDocument({
     data,

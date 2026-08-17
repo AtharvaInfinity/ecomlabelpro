@@ -1,4 +1,4 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { getPdfjs } from './pdfjs-node.service.js'
 
 export type FlipkartMetadata = {
   orderNumber?: string
@@ -31,6 +31,8 @@ export async function extractFlipkartMetadataForPages(
     pdfBytes.byteOffset,
     pdfBytes.byteLength,
   )
+
+  const pdfjsLib = await getPdfjs()
 
   const loadingTask = pdfjsLib.getDocument({
     data,
