@@ -1,0 +1,26 @@
+ECOM LABEL PRO - VERCEL ENVIRONMENT VARIABLES
+
+FRONTEND VERCEL PROJECT (Root Directory: client)
+-------------------------------------------------
+VITE_API_BASE_URL=https://YOUR-SERVER-PROJECT.vercel.app
+VITE_BLOB_UPLOAD=true
+
+BACKEND VERCEL PROJECT (Root Directory: server)
+------------------------------------------------
+BLOB_READ_WRITE_TOKEN=<Vercel Blob Read/Write token>
+
+IMPORTANT:
+- Keep BLOB_READ_WRITE_TOKEN only in the backend Vercel project.
+- Do NOT put BLOB_READ_WRITE_TOKEN in client/.env or any VITE_ variable.
+- Create/connect a Vercel Blob store to the backend project, then add its
+  BLOB_READ_WRITE_TOKEN environment variable.
+
+LOCAL DEVELOPMENT
+-----------------
+Leave VITE_BLOB_UPLOAD unset/false to keep the existing local multipart upload.
+The existing commands remain:
+
+npm install
+npm --prefix server install
+npm --prefix client install
+npm run dev

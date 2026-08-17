@@ -1,4 +1,14 @@
+import { upload as uploadToBlob } from '@vercel/blob/client'
 import type { ProcessOptions, ProcessResult, UploadedPdf } from '../types/pdf'
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const USE_BLOB_UPLOAD = String(import.meta.env.VITE_BLOB_UPLOAD || '').toLowerCase() === 'true'
+
+export function apiUrl(pathname: string) {
+  if (!pathname) return API_BASE_URL
+  if (/^https?:\/\//i.test(pathname)) return pathname
+  return `${API_BASE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`
+}
 
 async function json(response: Response) {
   const text = await response.text()
@@ -21,13 +31,32 @@ async function json(response: Response) {
 export async function uploadPdfs(
   files: File[],
 ): Promise<UploadedPdf[]> {
+  if (USE_BLOB_UPLOAD) {
+    const uploaded: UploadedPdf[] = []
+
+    for (const file of files) {
+      const blob = await uploadToBlob(file.name, file, {
+        access: 'private',
+        handleUploadUrl: apiUrl('/api/blob/upload'),
+        clientPayload: JSON.stringify({ fileName: file.name }),
+      })
+
+      // Page count is calculated by the backend when processing. The UI only
+      // needs a placeholder until processing starts.
+      uploaded.push({
+        fileId: blob.pathname,
+        fileName: file.name,
+        pages: 0,
+      })
+    }
+
+    return uploaded
+  }
+
   const form = new FormData()
+  files.forEach((file) => form.append('files', file))
 
-  files.forEach((file) => {
-    form.append('files', file)
-  })
-
-  const response = await fetch('/api/pdf/upload', {
+  const response = await fetch(apiUrl('/api/pdf/upload'), {
     method: 'POST',
     body: form,
   })
@@ -60,7 +89,7 @@ export async function processPdfs(
 
   console.log('Ecom Label Pro - Amazon options:', payload.options)
 
-  const response = await fetch('/api/pdf/process', {
+  const response = await fetch(apiUrl('/api/pdf/process'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

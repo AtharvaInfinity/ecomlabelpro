@@ -4,6 +4,7 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { extractFlipkartMetadataForPages } from '../services/flipkart-metadata.service.js'
+import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
 const uploadDir = path.resolve(process.cwd(), 'data/uploads')
 const outputDir = path.resolve(process.cwd(), 'data/outputs')
@@ -153,11 +154,13 @@ export async function flipkartProcessRoutes(app: FastifyInstance) {
         return reply.status(400).send({ message: 'Please enter the text you want to print on the label.' })
       }
 
+      await materializeUploads(body.files)
+
       const labels: LabelRecord[] = []
 
       for (let fileIndex = 0; fileIndex < body.files.length; fileIndex++) {
         const file = body.files[fileIndex]
-        const inputPath = path.join(uploadDir, path.basename(file.fileId))
+        const inputPath = getLocalUploadPath(file.fileId)
         const bytes = await fs.readFile(inputPath)
         const source = await PDFDocument.load(bytes)
         const pageCount = source.getPageCount()
@@ -228,7 +231,7 @@ const batch = labels.slice(start, start + A4_PER_PAGE)
           for (let slot = 0; slot < batch.length; slot++) {
             const record = batch[slot]
             const sourceFile = body.files[record.fileIndex]
-            const sourceBytes = await fs.readFile(path.join(uploadDir, path.basename(sourceFile.fileId)))
+            const sourceBytes = await fs.readFile(getLocalUploadPath(sourceFile.fileId))
             const source = await PDFDocument.load(sourceBytes)
             const sourcePage = source.getPage(record.sourceIndex)
             const sourceWidth = sourcePage.getWidth()
@@ -278,7 +281,7 @@ drawBottomOptions(a4, options, record, drawX, drawWidth, footerY, font)
       } else {
         for (const record of labels) {
           const sourceFile = body.files[record.fileIndex]
-          const sourceBytes = await fs.readFile(path.join(uploadDir, path.basename(sourceFile.fileId)))
+          const sourceBytes = await fs.readFile(getLocalUploadPath(sourceFile.fileId))
           const source = await PDFDocument.load(sourceBytes)
           const sourcePage = source.getPage(record.sourceIndex)
           const { width: sourceWidth, height: sourceHeight } = sourcePage.getSize()
@@ -311,14 +314,15 @@ drawBottomOptions(a4, options, record, drawX, drawWidth, footerY, font)
         }
       }
 
-      const outputId = `${crypto.randomUUID()}.pdf`
-      const outputPath = path.join(outputDir, outputId)
-      await fs.writeFile(outputPath, await output.save({ useObjectStreams: true }))
+      const savedOutput = await saveOutput(
+        await output.save({ useObjectStreams: true }),
+        'flipkart-shipping-labels.pdf',
+      )
 
       return reply.send({
         pages: output.getPageCount(),
         filename: 'flipkart-shipping-labels.pdf',
-        downloadUrl: `/api/pdf/download/${outputId}`,
+        downloadUrl: savedOutput.downloadUrl,
         labels: labels.length,
         sortedBySku: options.skuSorting,
         printedOrderNumber: options.orderNumber,

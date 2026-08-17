@@ -1,10 +1,11 @@
 import type { MeeshoProcessOptions, MeeshoProcessResult } from '../types/meesho'
+import { apiUrl } from './api'
 
 export async function processMeeshoPdfs(
   files: Array<{ fileId: string; fileName: string; pages: number }>,
   options: MeeshoProcessOptions,
 ): Promise<MeeshoProcessResult> {
-  const response = await fetch('/api/meesho/process', {
+  const response = await fetch(apiUrl('/api/meesho/process'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ files, options }),

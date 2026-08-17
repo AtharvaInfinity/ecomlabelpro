@@ -1,3 +1,4 @@
+import { apiUrl } from '../services/api'
 function buildLabelFooterText(customText: string, orderIndex: number) {
   const baseText = customText.trim() || 'Print Text on Label'
   return `${baseText} | Order ${orderIndex}`
@@ -159,7 +160,7 @@ export default function FlipkartCropper() {
             </div>
             {files.length > 0 && (
               <div className="flipkart-file-list">
-                {files.map(file => <div className="flipkart-file-item" key={file.fileId}><FileText size={15} /><span>{file.fileName} ({file.pages} pages)</span></div>)}
+                {files.map(file => <div className="flipkart-file-item" key={file.fileId}><FileText size={15} /><span>{file.fileName}{file.pages ? ` (${file.pages} pages)` : ' (PDF selected)'}</span></div>)}
               </div>
             )}
           </section>
@@ -177,7 +178,7 @@ export default function FlipkartCropper() {
                 <strong>{result.labels} labels prepared</strong>
                 <span>{result.pages} output page{result.pages !== 1 ? 's' : ''}</span>
               </div>
-              <a className="flipkart-download-button" href={result.downloadUrl} download={result.filename}>
+              <a className="flipkart-download-button" href={apiUrl(result.downloadUrl)} download={result.filename}>
                 <Download size={18} /> Download PDF
               </a>
               <button type="button" className="flipkart-reset-button" onClick={reset}>Process Another PDF</button>

@@ -4,6 +4,7 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { extractAmazonMetadataForPages } from '../services/amazon-metadata.service.js'
+import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
 const uploadDir = path.resolve(process.cwd(), 'data/uploads')
 const outputDir = path.resolve(process.cwd(), 'data/outputs')
@@ -101,6 +102,8 @@ export async function processRoutes(app: FastifyInstance) {
         printSku: Boolean(body.options?.printSku),
         printAsin: Boolean(body.options?.printAsin),
       }
+
+      await materializeUploads(body.files)
 
       const labels: LabelRecord[] = []
       const allLabelPages: number[] = []
@@ -512,22 +515,18 @@ export async function processRoutes(app: FastifyInstance) {
         )
       }
 
-      const outputId = `${crypto.randomUUID()}.pdf`
-      const outputPath = path.join(outputDir, outputId)
-
       const outputBytes = await output.save({
         useObjectStreams: true,
       })
-
-      await fs.writeFile(
-        outputPath,
+      const savedOutput = await saveOutput(
         outputBytes,
+        'amazon-shipping-labels.pdf',
       )
 
       return reply.send({
         pages: output.getPageCount(),
         filename: 'amazon-shipping-labels.pdf',
-        downloadUrl: `/api/pdf/download/${outputId}`,
+        downloadUrl: savedOutput.downloadUrl,
         files: body.files.length,
         labelPages: allLabelPages,
         invoicePages: allInvoicePages,

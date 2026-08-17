@@ -4,6 +4,7 @@ function buildLabelFooterText(customText: string, orderIndex: number) {
 }
 
 import type { UploadedPdf } from '../types/pdf'
+import { apiUrl } from './api'
 
 export type FlipkartProcessOptions = {
   orderNumber: boolean
@@ -34,7 +35,7 @@ export async function processFlipkartPdfs(
   files: UploadedPdf[],
   options: FlipkartProcessOptions,
 ): Promise<FlipkartProcessResult> {
-  const response = await fetch('/api/flipkart/process', {
+  const response = await fetch(apiUrl('/api/flipkart/process'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ files, options }),

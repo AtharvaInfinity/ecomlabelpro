@@ -5,6 +5,7 @@ import Footer from '../components/Footer'
 import { uploadPdfs } from '../services/api'
 import { processMeeshoPdfs } from '../services/meesho-api'
 import type { MeeshoProcessOptions, MeeshoProcessResult } from '../types/meesho'
+import { apiUrl } from '../services/api'
 
 type UploadedPdf = {
   fileId: string
@@ -386,7 +387,7 @@ export default function MeeshoCropper() {
               <div className="files-list">
                 {files.map((file, index) => (
                   <div className="file-item" key={file.fileId}>
-                    {index + 1}. {file.fileName} ({file.pages} pages)
+                    {index + 1}. {file.fileName}{file.pages ? ` (${file.pages} pages)` : ' (PDF selected)'}
                   </div>
                 ))}
               </div>
@@ -425,7 +426,7 @@ export default function MeeshoCropper() {
 
               <a
                 className="download-button"
-                href={result.downloadUrl}
+                href={apiUrl(result.downloadUrl)}
                 download={result.filename}
               >
                 <Download size={16} /> Download Shipping Labels

@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { processPdfs, uploadPdfs } from '../services/api'
 import type { ProcessOptions, ProcessResult, UploadedPdf } from '../types/pdf'
+import { apiUrl } from '../services/api'
 
 export default function AmazonCropper() {
   const [files, setFiles] = useState<UploadedPdf[]>([])
@@ -102,7 +103,7 @@ export default function AmazonCropper() {
           <section className="upload-section">
             <div className="upload-title">Choose Label Files (Multiple PDFs Allowed-Amazon Only) <span>*</span></div>
             <div className="file-box"><input className="file-input" type="file" accept=".pdf,application/pdf" multiple onChange={choose} /></div>
-            {files.length > 0 && <div className="files-list">{files.map((file, index) => <div className="file-item" key={file.fileId}><span>{index + 1}. {file.fileName} ({file.pages} pages)</span></div>)}</div>}
+            {files.length > 0 && <div className="files-list">{files.map((file, index) => <div className="file-item" key={file.fileId}><span>{index + 1}. {file.fileName}{file.pages ? ` (${file.pages} pages)` : ' (PDF selected)'}</span></div>)}</div>}
             {files.length > 0 && <button type="button" onClick={clear} className="clear-button"><Trash2 size={14} /> Clear files</button>}
           </section>
 
@@ -110,7 +111,7 @@ export default function AmazonCropper() {
             {processing ? <><LoaderCircle size={19} className="spin" /> Preparing...</> : <><Settings2 size={19} /> Prepare Shipping Labels</>}
           </button>
 
-          {result && <div className="result-box"><b><CheckCircle2 size={17} /> Shipping labels prepared successfully.</b><div className="result-note">{result.pages} output pages from {result.files} PDF file(s). Invoice pages removed. {a4Printer ? 'A4 layout enabled. ' : ''}{(printSku || printAsin) && <>Metadata detected on {result.metadataDetected ?? 0} label(s). {(result.metadataMissing ?? 0) > 0 ? `${result.metadataMissing} label(s) had no detectable SKU/ASIN.` : ''}</>}</div><a className="download-button" href={result.downloadUrl} download={result.filename}><Download size={16} /> Download Shipping Labels</a></div>}
+          {result && <div className="result-box"><b><CheckCircle2 size={17} /> Shipping labels prepared successfully.</b><div className="result-note">{result.pages} output pages from {result.files} PDF file(s). Invoice pages removed. {a4Printer ? 'A4 layout enabled. ' : ''}{(printSku || printAsin) && <>Metadata detected on {result.metadataDetected ?? 0} label(s). {(result.metadataMissing ?? 0) > 0 ? `${result.metadataMissing} label(s) had no detectable SKU/ASIN.` : ''}</>}</div><a className="download-button" href={apiUrl(result.downloadUrl)} download={result.filename}><Download size={16} /> Download Shipping Labels</a></div>}
           {error && <div className="error-box">{error}</div>}
         </div>
       </main>

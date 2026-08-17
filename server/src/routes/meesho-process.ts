@@ -4,6 +4,7 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { extractMeeshoMetadata } from '../services/meesho-metadata.service.js'
+import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
 const uploadDir = path.resolve(process.cwd(), 'data/uploads')
 const outputDir = path.resolve(process.cwd(), 'data/outputs')
@@ -153,12 +154,14 @@ export async function meeshoProcessRoutes(app: FastifyInstance) {
         customText: body.options?.customText ?? '',
       }
 
+      await materializeUploads(body.files)
+
       const labels: LabelRecord[] = []
       let sequence = 1
 
       for (let fileIndex = 0; fileIndex < body.files.length; fileIndex++) {
         const file = body.files[fileIndex]
-        const inputPath = path.join(uploadDir, path.basename(file.fileId))
+        const inputPath = getLocalUploadPath(file.fileId)
         const bytes = await fs.readFile(inputPath)
         const metadata = await extractMeeshoMetadata(new Uint8Array(bytes))
 
@@ -212,7 +215,7 @@ export async function meeshoProcessRoutes(app: FastifyInstance) {
 
           const sourceFile = body.files[record.fileIndex]
           const sourceBytes = await fs.readFile(
-            path.join(uploadDir, path.basename(sourceFile.fileId)),
+            getLocalUploadPath(sourceFile.fileId),
           )
           const source = await PDFDocument.load(sourceBytes)
           const sourcePage = source.getPage(record.sourceIndex)
@@ -271,7 +274,7 @@ export async function meeshoProcessRoutes(app: FastifyInstance) {
         for (const record of labels) {
           const sourceFile = body.files[record.fileIndex]
           const sourceBytes = await fs.readFile(
-            path.join(uploadDir, path.basename(sourceFile.fileId)),
+            getLocalUploadPath(sourceFile.fileId),
           )
           const source = await PDFDocument.load(sourceBytes)
           const sourcePage = source.getPage(record.sourceIndex)
@@ -311,17 +314,15 @@ export async function meeshoProcessRoutes(app: FastifyInstance) {
         }
       }
 
-      const outputId = `${crypto.randomUUID()}.pdf`
-      const outputPath = path.join(outputDir, outputId)
-      await fs.writeFile(
-        outputPath,
+      const savedOutput = await saveOutput(
         await output.save({ useObjectStreams: true }),
+        'meesho-shipping-labels.pdf',
       )
 
       return reply.send({
         pages: output.getPageCount(),
         filename: 'meesho-shipping-labels.pdf',
-        downloadUrl: `/api/pdf/download/${outputId}`,
+        downloadUrl: savedOutput.downloadUrl,
         labels: labels.length,
         sortedBySku: options.skuSorting,
         sortedByPickup: options.pickupSorting,

@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { apiUrl, uploadPdfs } from '../services/api'
 
 type SelectedFile = {
   fileId: string
@@ -28,7 +29,6 @@ type MergeResult = {
   files: number
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
 
 export default function MergePdf() {
   const [files, setFiles] = useState<SelectedFile[]>([])
@@ -64,26 +64,12 @@ export default function MergePdf() {
     setIsUploading(true)
 
     try {
-      const formData = new FormData()
-      selected.forEach(file => formData.append('files', file))
+      const uploadedPdfs = await uploadPdfs(selected)
 
-      const response = await fetch(`${API_BASE}/api/pdf/upload`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Upload failed.')
-      }
-
-      const uploaded: SelectedFile[] = (data.files ?? []).map(
-        (file: { fileId: string; fileName: string; pages: number }, index: number) => ({
-          ...file,
-          size: selected[index]?.size ?? 0,
-        }),
-      )
+      const uploaded: SelectedFile[] = uploadedPdfs.map((file, index) => ({
+        ...file,
+        size: selected[index]?.size ?? 0,
+      }))
 
       setFiles(current => [...current, ...uploaded])
     } catch (err) {
@@ -121,7 +107,7 @@ export default function MergePdf() {
     setIsMerging(true)
 
     try {
-      const response = await fetch(`${API_BASE}/api/pdf/merge`, {
+      const response = await fetch(apiUrl('/api/pdf/merge'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +209,7 @@ export default function MergePdf() {
                     <div className="merge-file-info">
                       <div className="merge-file-name">{file.fileName}</div>
                       <div className="merge-file-meta">
-                        {file.pages} {file.pages === 1 ? 'page' : 'pages'}
+                        {file.pages ? `${file.pages} ${file.pages === 1 ? 'page' : 'pages'}` : 'PDF selected'}
                         {file.size > 0
                           ? ` · ${(file.size / 1024 / 1024).toFixed(2)} MB`
                           : ''}
@@ -297,7 +283,7 @@ export default function MergePdf() {
               </div>
               <a
                 className="merge-download-btn"
-                href={`${API_BASE}/api/pdf/download/${result.fileId}?name=${encodeURIComponent(result.fileName)}`}
+                href={apiUrl(`/api/pdf/download/${result.fileId}?name=${encodeURIComponent(result.fileName)}`)}
                 download={result.fileName}
               >
                 Download merged PDF

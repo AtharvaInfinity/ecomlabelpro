@@ -3,6 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { PDFDocument } from 'pdf-lib'
+import { materializeUploads, getLocalUploadPath, saveOutput } from '../services/storage.service.js'
 
 const uploadDir = path.resolve(process.cwd(), 'data/uploads')
 const outputDir = path.resolve(process.cwd(), 'data/outputs')
@@ -34,15 +35,29 @@ export async function mergePdfRoutes(app: FastifyInstance) {
         })
       }
 
+      const selectedFiles = body.files.filter(
+        (item): item is { fileId: string; fileName: string; pages: number } =>
+          typeof item.fileId === 'string' && item.fileId.length > 0 &&
+          typeof item.fileName === 'string',
+      )
+
+      if (selectedFiles.length !== body.files.length) {
+        return reply.status(400).send({
+          message: 'One or more selected PDFs is missing its file ID or file name.',
+        })
+      }
+
+      await materializeUploads(selectedFiles)
+
       const merged = await PDFDocument.create()
 
-      for (const item of body.files) {
+      for (const item of selectedFiles) {
         if (!item.fileId) {
           return reply.status(400).send({ message: 'A selected PDF is missing its file ID.' })
         }
 
         const safeId = path.basename(item.fileId)
-        const sourcePath = path.join(uploadDir, safeId)
+        const sourcePath = getLocalUploadPath(safeId)
         const sourceBytes = await fs.readFile(sourcePath)
         const sourcePdf = await PDFDocument.load(sourceBytes)
         const pages = await merged.copyPages(sourcePdf, sourcePdf.getPageIndices())
@@ -57,14 +72,14 @@ export async function mergePdfRoutes(app: FastifyInstance) {
       }
 
       const bytes = await merged.save()
-      const outputId = `${crypto.randomUUID()}.pdf`
-      await fs.writeFile(path.join(outputDir, outputId), bytes)
+      const savedOutput = await saveOutput(bytes, 'merged-pdfs.pdf')
 
       return {
-        fileId: outputId,
+        fileId: savedOutput.id,
         fileName: 'merged-pdfs.pdf',
         pages: merged.getPageCount(),
-        files: body.files.length,
+        files: selectedFiles.length,
+        downloadUrl: savedOutput.downloadUrl,
       }
     } catch (error) {
       req.log.error(error)
