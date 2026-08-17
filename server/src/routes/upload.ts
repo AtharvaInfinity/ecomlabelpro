@@ -9,7 +9,7 @@ const localDir = path.resolve(process.cwd(), 'data/uploads')
 const vercelLocalDir = '/tmp/ecom-label-pro/uploads'
 
 function useBlobStorage() {
-  return Boolean(process.env.VERCEL && process.env.BLOB_READ_WRITE_TOKEN)
+  return Boolean(process.env.VERCEL && process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN)
 }
 
 function getLocalDir() {
@@ -49,7 +49,7 @@ export async function uploadRoutes(app: FastifyInstance) {
             access: 'private',
             contentType: 'application/pdf',
             addRandomSuffix: false,
-            token: process.env.BLOB_READ_WRITE_TOKEN,
+            token: process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN,
           })
         } else {
           await fs.writeFile(path.join(getLocalDir(), id), buf)

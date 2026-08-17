@@ -13,8 +13,10 @@ const localOutputDir = process.env.VERCEL
   ? '/tmp/ecom-label-pro/outputs'
   : path.resolve(process.cwd(), 'data/outputs')
 
+// This project uses Vercel's connected-store variable name shown in the
+// dashboard: BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN.
 function hasBlobStorage() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN)
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN)
 }
 
 export function getLocalUploadPath(fileId: string) {
@@ -40,7 +42,7 @@ export async function materializeUploads(files: UploadedFile[]) {
       file.fileId.startsWith('uploads/') ? file.fileId : `uploads/${path.basename(file.fileId)}`,
       {
         access: 'private',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
+        token: process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN,
       },
     )
 
@@ -61,7 +63,7 @@ export async function saveOutput(bytes: Uint8Array, filename: string) {
       access: 'public',
       contentType: 'application/pdf',
       addRandomSuffix: false,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN,
     })
 
     return {
@@ -85,7 +87,7 @@ export async function getOutputFile(id: string) {
   if (hasBlobStorage()) {
     const result = await get(`outputs/${safeId}`, {
       access: 'public',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN,
     })
 
     if (!result) return null
