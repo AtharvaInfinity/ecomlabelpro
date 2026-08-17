@@ -139,7 +139,6 @@ export async function extractAmazonMetadataForPages(
 
   const loadingTask = pdfjsLib.getDocument({
     data,
-    disableWorker: true,
     useSystemFonts: true,
     verbosity: 0,
   })

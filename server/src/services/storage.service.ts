@@ -54,7 +54,7 @@ export async function saveOutput(bytes: Uint8Array, filename: string) {
   const outputId = `${crypto.randomUUID()}.pdf`
 
   if (hasBlobStorage()) {
-    const blob = await put(`outputs/${outputId}`, bytes, {
+    const blob = await put(`outputs/${outputId}`, Buffer.from(bytes), {
       access: 'public',
       contentType: 'application/pdf',
       addRandomSuffix: false,

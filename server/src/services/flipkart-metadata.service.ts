@@ -34,7 +34,6 @@ export async function extractFlipkartMetadataForPages(
 
   const loadingTask = pdfjsLib.getDocument({
     data,
-    disableWorker: true,
     useSystemFonts: true,
     verbosity: 0,
   })
