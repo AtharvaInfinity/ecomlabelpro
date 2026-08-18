@@ -35,19 +35,17 @@ await meeshoProcessRoutes(app)
 await mergePdfRoutes(app)
 await downloadRoutes(app)
 
-// Vercel runs Fastify as a serverless function. Do not call app.listen()
-// in the Vercel runtime; Vercel invokes the exported Fastify app itself.
-// For local development, keep the normal HTTP listener.
-if (!process.env.VERCEL) {
-  try {
-    await app.listen({
-      port: Number(process.env.PORT || 4000),
-      host: process.env.HOST || '0.0.0.0',
-    })
-  } catch (e) {
-    app.log.error(e)
-    process.exit(1)
-  }
+// Vercel's Fastify integration detects this entrypoint and wraps the
+// Fastify application as a Function. Keep listen() here; Vercel's adapter
+// handles the incoming request lifecycle for the deployed function.
+try {
+  await app.listen({
+    port: Number(process.env.PORT || 3000),
+    host: process.env.HOST || '0.0.0.0',
+  })
+} catch (e) {
+  app.log.error(e)
+  process.exit(1)
 }
 
 export default app
