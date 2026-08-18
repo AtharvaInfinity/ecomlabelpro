@@ -8,7 +8,9 @@ export async function downloadRoutes(app: FastifyInstance) {
       const result = await getOutputFile(id)
 
       if (!result) {
-        return reply.status(404).send({ message: 'Output PDF not found.' })
+        return reply.status(404).send({
+          message: 'Output PDF not found.',
+        })
       }
 
       const requestedName =
@@ -16,24 +18,43 @@ export async function downloadRoutes(app: FastifyInstance) {
           ? String((req.query as { name?: string }).name)
           : 'processed-pdf.pdf'
 
-      const safeName = requestedName.toLowerCase().endsWith('.pdf')
+      const safeName = requestedName
+        .toLowerCase()
+        .endsWith('.pdf')
         ? requestedName
         : `${requestedName || 'processed-pdf'}.pdf`
 
-      if ('downloadUrl' in result && result.downloadUrl) {
-        return reply.redirect(result.downloadUrl)
-      }
+      reply.header(
+        'Content-Type',
+        result.contentType || 'application/pdf',
+      )
 
-      reply.header('Content-Type', result.contentType || 'application/pdf')
       reply.header(
         'Content-Disposition',
         `attachment; filename="${safeName.replace(/["\\]/g, '')}"`,
       )
 
-      return reply.send(result.buffer)
+      // Private Vercel Blob files are streamed through Railway.
+      if ('stream' in result && result.stream) {
+        return reply.send(result.stream)
+      }
+
+      if ('buffer' in result && result.buffer) {
+        return reply.send(result.buffer)
+      }
+
+      return reply.status(404).send({
+        message: 'Output PDF content is unavailable.',
+      })
     } catch (error) {
       req.log.error(error)
-      return reply.status(404).send({ message: 'Output PDF not found.' })
+
+      return reply.status(500).send({
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to download output PDF.',
+      })
     }
   })
 }

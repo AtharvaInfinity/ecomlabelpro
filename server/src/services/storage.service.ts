@@ -58,20 +58,19 @@ export async function materializeUploads(files: UploadedFile[]) {
 export async function saveOutput(bytes: Uint8Array, filename: string) {
   const outputId = `${crypto.randomUUID()}.pdf`
 
-  if (hasBlobStorage()) {
-    const blob = await put(`outputs/${outputId}`, Buffer.from(bytes), {
-      access: 'private',
-      contentType: 'application/pdf',
-      addRandomSuffix: false,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    })
+ if (hasBlobStorage()) {
+  await put(`outputs/${outputId}`, Buffer.from(bytes), {
+    access: 'private',
+    contentType: 'application/pdf',
+    addRandomSuffix: false,
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  })
 
-    return {
-      id: outputId,
-      downloadUrl: blob.downloadUrl || blob.url,
-    }
+  return {
+    id: outputId,
+    downloadUrl: `/api/pdf/download/${outputId}`,
   }
-
+}
   await fs.mkdir(localOutputDir, { recursive: true })
   await fs.writeFile(path.join(localOutputDir, outputId), bytes)
 
