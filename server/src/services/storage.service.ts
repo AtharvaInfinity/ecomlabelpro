@@ -60,7 +60,7 @@ export async function saveOutput(bytes: Uint8Array, filename: string) {
 
   if (hasBlobStorage()) {
     const blob = await put(`outputs/${outputId}`, Buffer.from(bytes), {
-      access: 'public',
+      access: 'private',
       contentType: 'application/pdf',
       addRandomSuffix: false,
       token: process.env.BLOB_READ_WRITE_TOKEN,
@@ -86,7 +86,7 @@ export async function getOutputFile(id: string) {
 
   if (hasBlobStorage()) {
     const result = await get(`outputs/${safeId}`, {
-      access: 'public',
+      access: 'private',
       token: process.env.BLOB_READ_WRITE_TOKEN,
     })
 
