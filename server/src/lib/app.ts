@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
+
 import { uploadRoutes } from '../routes/upload.js'
 import { processRoutes } from '../routes/process.js'
 import { downloadRoutes } from '../routes/download.js'
@@ -12,11 +13,18 @@ import { blobUploadRoutes } from '../routes/blob-upload.js'
 export async function buildApp() {
   const app = Fastify({ logger: true })
 
-  await app.register(cors, { origin: true })
-  await app.register(multipart, {
-    limits: { fileSize: 50 * 1024 * 1024, files: 20 },
+  await app.register(cors, {
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
+  await app.register(multipart, {
+    limits: {
+      fileSize: 50 * 1024 * 1024,
+      files: 20,
+    },
+  })
   app.get('/', async () => ({
     status: 'ok',
     service: 'ecom-label-pro-api',
