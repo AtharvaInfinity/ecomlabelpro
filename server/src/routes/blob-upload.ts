@@ -4,9 +4,9 @@ import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 export async function blobUploadRoutes(app: FastifyInstance) {
   app.post('/api/blob/upload', async (req, reply) => {
     try {
-      if (!process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
         return reply.status(500).send({
-          message: 'Vercel Blob is not configured. Add BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN.',
+          message: 'Vercel Blob is not configured. Add BLOB_READ_WRITE_TOKEN.',
         })
       }
 
@@ -24,7 +24,7 @@ export async function blobUploadRoutes(app: FastifyInstance) {
       })
 
       const jsonResponse = await handleUpload({
-        token: process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
         body,
         request: webRequest,
         onBeforeGenerateToken: async (pathname: string, clientPayload: string | null) => {
