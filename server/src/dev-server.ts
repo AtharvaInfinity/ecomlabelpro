@@ -1,4 +1,4 @@
-import { buildApp } from './app.js'
+import { buildApp } from './app-builder.js'
 
 const app = await buildApp()
 
