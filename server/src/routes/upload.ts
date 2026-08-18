@@ -1,3 +1,4 @@
+import '@fastify/multipart'
 import type { FastifyInstance } from 'fastify'
 import fs from 'node:fs/promises'
 import path from 'node:path'
