@@ -69,7 +69,7 @@ export async function blobUploadRoutes(app: FastifyInstance) {
 
             addRandomSuffix: true,
 
-            access: 'private',
+            access: 'public',
 
             tokenPayload: JSON.stringify({
               fileName:
